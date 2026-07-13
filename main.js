@@ -224,7 +224,8 @@ let DPR = Math.min(window.devicePixelRatio || 1, 2);
 let VW = 0, VH = 0;
 
 const mouse = { x: -9999, y: -9999, vx: 0, vy: 0, px: -9999, py: -9999 };
-let agitation = 0; // how much the cursor is stirring the threads right now
+let agitation = 0; // slow envelope: how disturbed the curtain is overall
+let stir = 0;      // fast envelope: how hard this exact frame is stirring
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
 window.addEventListener("mouseleave", () => { mouse.x = -9999; mouse.y = -9999; });
 
@@ -316,6 +317,7 @@ class StrandSystem {
           nx += (dx / d) * f * 3.2 + mvx * f * 0.28;
           ny += (dy / d) * f * 1.2 + mvy * f * 0.2;
           agitation += f * (0.003 + (Math.abs(mvx) + Math.abs(mvy)) * 0.0004);
+          stir += f * (Math.abs(mvx) + Math.abs(mvy)) * 0.0003;
         }
         p.px = p.x; p.py = p.y;
         p.x = nx; p.y = ny;
@@ -627,15 +629,91 @@ document.querySelectorAll(".menu-link").forEach((link) => {
 // ---------------------------------------------------------- sound
 
 const soundToggle = document.getElementById("soundToggle");
-const sound = { ctx: null, buffer: null, gain: null, on: false, timer: null, sources: new Set(), level: 0 };
+const sound = {
+  ctx: null, buffer: null, gain: null, on: false, timer: null,
+  sources: new Set(), level: 0,
+  master: null, rustle: null, filter: null, noiseSrc: null,
+};
 
 async function initAudio() {
   sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  sound.master = sound.ctx.createGain();
+  sound.master.gain.value = 0;
+  sound.master.connect(sound.ctx.destination);
+
+  // ambience bed (swells softly with overall disturbance)
   sound.gain = sound.ctx.createGain();
   sound.gain.gain.value = 0;
-  sound.gain.connect(sound.ctx.destination);
+  sound.gain.connect(sound.master);
+
+  // thread rustle: looped noise through a bandpass, gained by stir speed
+  const sr = sound.ctx.sampleRate;
+  const nb = sound.ctx.createBuffer(1, sr * 2, sr);
+  const ch = nb.getChannelData(0);
+  for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1;
+  sound.noiseBuffer = nb;
+  sound.filter = sound.ctx.createBiquadFilter();
+  sound.filter.type = "bandpass";
+  sound.filter.frequency.value = 2000;
+  sound.filter.Q.value = 0.7;
+  sound.rustle = sound.ctx.createGain();
+  sound.rustle.gain.value = 0;
+  sound.filter.connect(sound.rustle);
+  sound.rustle.connect(sound.master);
+
   const res = await fetch("ambience.m4a");
   sound.buffer = await sound.ctx.decodeAudioData(await res.arrayBuffer());
+}
+
+// one soft pluck as the cursor crosses a thread; pitch follows its position
+const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+function pluckNote(xN) {
+  const t = sound.ctx.currentTime;
+  const speed = Math.min(24, Math.abs(mouse.vx) + Math.abs(mouse.vy));
+  const vel = 0.015 + speed * 0.0032;
+  const freq = 392 * Math.pow(2, PENTA[Math.round(xN * (PENTA.length - 1))] / 12);
+  const o = sound.ctx.createOscillator();
+  o.type = "sine";
+  o.frequency.value = freq;
+  const g = sound.ctx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vel, t + 0.006);
+  g.gain.exponentialRampToValueAtTime(0.0006, t + 0.45);
+  o.connect(g); g.connect(sound.master);
+  o.start(t); o.stop(t + 0.5);
+  const o2 = sound.ctx.createOscillator();
+  o2.type = "sine";
+  o2.frequency.value = freq * 2.01;
+  const g2 = sound.ctx.createGain();
+  g2.gain.setValueAtTime(0, t);
+  g2.gain.linearRampToValueAtTime(vel * 0.28, t + 0.005);
+  g2.gain.exponentialRampToValueAtTime(0.0005, t + 0.25);
+  o2.connect(g2); g2.connect(sound.master);
+  o2.start(t); o2.stop(t + 0.3);
+}
+
+// which threads did the cursor sweep across since last frame?
+let lastMX = -9999;
+function strum(sys) {
+  const a = sys.getAnchor();
+  const n = sys.strands.length;
+  const yMax = a.y + sys.strands[0].pts.length * sys.segLen * 1.2;
+  if (mouse.y < a.y - 20 || mouse.y > yMax) return;
+  const x0 = Math.min(mouse.x, lastMX), x1 = Math.max(mouse.x, lastMX);
+  if (x1 - x0 < 0.5 || lastMX === -9999) return;
+  const now = performance.now();
+  let played = 0;
+  for (let k = 0; k < n; k++) {
+    const xN = n === 1 ? 0.5 : k / (n - 1);
+    const sx = a.x0 + xN * (a.x1 - a.x0);
+    if (sx >= x0 && sx <= x1) {
+      const st = sys.strands[k];
+      if (!st.lastPluck || now - st.lastPluck > 160) {
+        st.lastPluck = now;
+        if (played++ < 4) pluckNote(xN);
+      }
+    }
+  }
 }
 
 // two overlapping sources with an equal-power crossfade = gapless loop
@@ -667,21 +745,30 @@ async function toggleSound() {
   sound.on = !sound.on;
   soundToggle.classList.toggle("on", sound.on);
   const t = sound.ctx.currentTime;
-  sound.gain.gain.cancelScheduledValues(t);
+  sound.master.gain.cancelScheduledValues(t);
   if (sound.on) {
     // stays silent until the cursor stirs the threads (see frame loop)
     scheduleLoop(t + 0.05);
     sound.gain.gain.setValueAtTime(0, t);
+    sound.rustle.gain.setValueAtTime(0, t);
+    sound.master.gain.setValueAtTime(0, t);
+    sound.master.gain.linearRampToValueAtTime(1, t + 0.3);
     sound.level = 0;
+    sound.noiseSrc = sound.ctx.createBufferSource();
+    sound.noiseSrc.buffer = sound.noiseBuffer;
+    sound.noiseSrc.loop = true;
+    sound.noiseSrc.connect(sound.filter);
+    sound.noiseSrc.start(t);
   } else {
     clearTimeout(sound.timer);
     soundToggle.classList.remove("audible");
-    sound.gain.gain.setValueAtTime(sound.gain.gain.value, t);
-    sound.gain.gain.linearRampToValueAtTime(0, t + 0.5);
+    sound.master.gain.setValueAtTime(sound.master.gain.value, t);
+    sound.master.gain.linearRampToValueAtTime(0, t + 0.4);
     setTimeout(() => {
       sound.sources.forEach((s) => { try { s.stop(); } catch (e) {} });
       sound.sources.clear();
-    }, 600);
+      if (sound.noiseSrc) { try { sound.noiseSrc.stop(); } catch (e) {} sound.noiseSrc = null; }
+    }, 500);
   }
 }
 soundToggle.addEventListener("click", toggleSound);
@@ -713,26 +800,38 @@ function frame() {
   // sound follows the threads: swells while you brush them, fades when you stop
   agitation = Math.min(1.4, agitation * 0.92);
   if (sound.on && sound.ctx) {
+    const t = sound.ctx.currentTime;
     const target = Math.min(1, agitation);
     sound.level += (target - sound.level) * (target > sound.level ? 0.25 : 0.045);
-    sound.gain.gain.setTargetAtTime(sound.level * 0.95, sound.ctx.currentTime, 0.08);
-    soundToggle.classList.toggle("audible", sound.level > 0.04);
+    sound.gain.gain.setTargetAtTime(sound.level * 0.5, t, 0.08);
+    // rustle rides the instantaneous stir, brighter when you move faster
+    const speed = Math.min(24, Math.abs(mouse.vx) + Math.abs(mouse.vy));
+    sound.rustle.gain.setTargetAtTime(Math.min(0.2, stir * 1.5), t, 0.055);
+    sound.filter.frequency.setTargetAtTime(1400 + speed * 90, t, 0.1);
+    soundToggle.classList.toggle("audible", sound.level > 0.04 || stir > 0.01);
   }
+  stir = 0;
 
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.clearRect(0, 0, VW, VH);
 
+  const canStrum = sound.on && sound.ctx;
   if (view === "home") {
     for (const id of ["A", "B"]) {
       const w = wraps[id];
-      if (w.visible && w.system) { w.system.step(); w.system.draw(); }
+      if (w.visible && w.system) {
+        w.system.step(); w.system.draw();
+        if (canStrum) strum(w.system);
+      }
     }
   } else {
     for (const s of destSystems) {
       s.alpha = Math.min(1, s.alpha + 0.03);
       s.step(); s.draw();
+      if (canStrum) strum(s);
     }
   }
+  lastMX = mouse.x;
   requestAnimationFrame(frame);
 }
 
