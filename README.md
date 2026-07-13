@@ -15,5 +15,5 @@ python3 -m http.server 4173
 
 - Click the side cards (or ← / → arrow keys) to change destination
 - **Destinations** in the nav shows all three roofs
-- Click **sound** (bottom-left) for the looping ambience
+- Click **sound** (bottom-left) to arm audio — it stays silent until you brush the threads, swelling with the motion and fading when you stop
 - Move your cursor through the hanging text

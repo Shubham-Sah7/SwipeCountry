@@ -224,6 +224,7 @@ let DPR = Math.min(window.devicePixelRatio || 1, 2);
 let VW = 0, VH = 0;
 
 const mouse = { x: -9999, y: -9999, vx: 0, vy: 0, px: -9999, py: -9999 };
+let agitation = 0; // how much the cursor is stirring the threads right now
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
 window.addEventListener("mouseleave", () => { mouse.x = -9999; mouse.y = -9999; });
 
@@ -314,6 +315,7 @@ class StrandSystem {
           const mvy = Math.max(-22, Math.min(22, mouse.vy));
           nx += (dx / d) * f * 3.2 + mvx * f * 0.28;
           ny += (dy / d) * f * 1.2 + mvy * f * 0.2;
+          agitation += f * (0.003 + (Math.abs(mvx) + Math.abs(mvy)) * 0.0004);
         }
         p.px = p.x; p.py = p.y;
         p.x = nx; p.y = ny;
@@ -625,7 +627,7 @@ document.querySelectorAll(".menu-link").forEach((link) => {
 // ---------------------------------------------------------- sound
 
 const soundToggle = document.getElementById("soundToggle");
-const sound = { ctx: null, buffer: null, gain: null, on: false, timer: null, sources: new Set() };
+const sound = { ctx: null, buffer: null, gain: null, on: false, timer: null, sources: new Set(), level: 0 };
 
 async function initAudio() {
   sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -667,11 +669,13 @@ async function toggleSound() {
   const t = sound.ctx.currentTime;
   sound.gain.gain.cancelScheduledValues(t);
   if (sound.on) {
+    // stays silent until the cursor stirs the threads (see frame loop)
     scheduleLoop(t + 0.05);
     sound.gain.gain.setValueAtTime(0, t);
-    sound.gain.gain.linearRampToValueAtTime(0.9, t + 1.2);
+    sound.level = 0;
   } else {
     clearTimeout(sound.timer);
+    soundToggle.classList.remove("audible");
     sound.gain.gain.setValueAtTime(sound.gain.gain.value, t);
     sound.gain.gain.linearRampToValueAtTime(0, t + 0.5);
     setTimeout(() => {
@@ -705,6 +709,15 @@ function frame() {
   mouse.vx += ((mouse.x - mouse.px) - mouse.vx) * 0.5;
   mouse.vy += ((mouse.y - mouse.py) - mouse.vy) * 0.5;
   mouse.px = mouse.x; mouse.py = mouse.y;
+
+  // sound follows the threads: swells while you brush them, fades when you stop
+  agitation = Math.min(1.4, agitation * 0.92);
+  if (sound.on && sound.ctx) {
+    const target = Math.min(1, agitation);
+    sound.level += (target - sound.level) * (target > sound.level ? 0.25 : 0.045);
+    sound.gain.gain.setTargetAtTime(sound.level * 0.95, sound.ctx.currentTime, 0.08);
+    soundToggle.classList.toggle("audible", sound.level > 0.04);
+  }
 
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.clearRect(0, 0, VW, VH);
