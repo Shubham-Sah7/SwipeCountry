@@ -12,7 +12,7 @@ const DESTS = {
     kicker: "缘分 (Yuánfèn) A destined meeting",
     headline: "China —— golden courtyards, silk-road myths, roofs that refuse gravity",
     blurb: "Wander forbidden gardens, painted eaves, and stories older than the maps that tried to hold them.",
-    leftLabel: "Vietnam", leftIcon: "vietnam",
+    leftLabel: "India", leftIcon: "india",
     rightLabel: "Japan", rightIcon: "japan",
     chars: "千里之行始于足下上善若水水善利万物而不争天下莫柔弱于水而攻坚强者莫之能胜知人者智自知者明胜人者有力自胜者强知足者富强行者有志不失其所者久大方无隅大器晚成大音希声大象无形道隐无名夫唯道善贷且成人法地地法天天法道道法自然江山如画一时多少豪杰月落乌啼霜满天江枫渔火对愁眠",
     charFont: '"Songti SC","STSong","Noto Serif SC",serif',
@@ -39,16 +39,29 @@ const DESTS = {
     headline: "Kazakhstan —— steppe wind, shanyrak light, and a home that moves with you",
     blurb: "Cross grass without edge, warm felt interiors, and patterns that outrun every border.",
     leftLabel: "Japan", leftIcon: "japan",
-    rightLabel: "Russia", rightIcon: "russia",
+    rightLabel: "India", rightIcon: "india",
     chars: "жол дала жүрек көңіл шаңырақ керегең кең болсын атамекен туған жер көк аспан жібек жолы қонақ дәстүр өнер домбыра күй аңыз батыр көш керуен сахара бостандық еркіндік атамұра қымыз бесік жырау толғау айтыс сарын құт береке ырыс ",
     charFont: '"IBM Plex Mono",monospace',
     charSize: 11,
     anchorInset: 0.16, anchorLift: 0.08, anchorArch: 0.15,
     roofWidthVW: 36, roofTopVH: 8,
   },
+  india: {
+    name: "India",
+    kicker: "अतिथि देवो भव (Atithi Devo Bhava) The guest\nis god",
+    headline: "India —— carved domes, monsoon songs, and colour in every courtyard",
+    blurb: "Drift through marble courts, spice-bright bazaars, and temples that hum with a thousand years of prayer.",
+    leftLabel: "Kazakhstan", leftIcon: "kazakhstan",
+    rightLabel: "China", rightIcon: "china",
+    chars: "अतिथि देवो भव वसुधैव कुटुम्बकम् सत्यमेव जयते नदी पर्वत मंदिर घाट रंग उत्सव दीप संगीत कथा यात्रा मसाला बाज़ार महल किला चाँदनी कमल मोर वर्षा गंगा हिमालय रेशम हवेली झरोखा आँगन दीया मेला ",
+    charFont: '"Devanagari MT","ITF Devanagari","Noto Serif Devanagari",serif',
+    charSize: 12.5,
+    anchorInset: 0.28, anchorLift: 0.03, anchorArch: 0.05,
+    roofWidthVW: 31, roofTopVH: 6.5,
+  },
 };
 
-const ORDER = ["china", "japan", "kazakhstan"];
+const ORDER = ["china", "japan", "kazakhstan", "india"];
 
 // ---------------------------------------------------------- roof art
 
@@ -194,7 +207,62 @@ function yurtRoofSVG() {
   };
 }
 
-const ROOFS = { china: chinaRoofSVG(), japan: japanRoofSVG(), kazakhstan: yurtRoofSVG() };
+function indiaRoofSVG() {
+  const dome = "M280,58 C350,86 425,140 425,215 C425,258 392,282 355,290 L205,290 C168,282 135,258 135,215 C135,140 210,86 280,58 Z";
+  const band = "M155,300 L405,300 L405,338 L155,338 Z";
+  // melon-dome ribs fanning from the tip to the base
+  let ribs = "";
+  for (let i = 0; i <= 8; i++) {
+    const t = i / 8;
+    const bx = 165 + t * 230;
+    ribs += `M280,62 Q${280 + (bx - 280) * 1.6},175 ${bx},288 `;
+  }
+  // cusped arches along the drum
+  let arches = "";
+  for (let i = 0; i < 9; i++) {
+    const x = 163 + i * 26.5;
+    arches += `M${x},334 L${x},318 Q${x},308 ${x + 6.5},308 Q${x + 9.75},300 ${x + 13},308 Q${x + 19.5},308 ${x + 19.5},318 L${x + 19.5},334 Z `;
+  }
+  return {
+    viewBox: "0 0 560 344",
+    aspect: 344 / 560,
+    silhouette: [dome, "M130,288 L430,288 L430,340 L130,340 Z"],
+    art: `
+    <defs>
+      <linearGradient id="inMarble" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fbf6ea"/><stop offset="0.65" stop-color="#ece0c8"/><stop offset="1" stop-color="#d8c8a8"/>
+      </linearGradient>
+      <clipPath id="inClip"><path d="${dome}"/></clipPath>
+    </defs>
+    <!-- finial -->
+    <rect x="277.5" y="18" width="5" height="42" rx="2.5" fill="#b8891c"/>
+    <circle cx="280" cy="30" r="6" fill="#c9971f"/>
+    <circle cx="280" cy="14" r="3.5" fill="#c9971f"/>
+    <path d="M266,58 Q280,44 294,58 Q280,66 266,58 Z" fill="#c9971f"/>
+    <!-- dome -->
+    <path d="${dome}" fill="url(#inMarble)"/>
+    <g clip-path="url(#inClip)">
+      <path d="${ribs}" stroke="rgba(120,95,65,0.4)" stroke-width="2.2" fill="none"/>
+      <path d="M280,58 C350,86 425,140 425,215 C425,258 392,282 355,290" fill="none" stroke="rgba(120,95,65,0.45)" stroke-width="3"/>
+      <path d="M280,58 C210,86 135,140 135,215 C135,258 168,282 205,290" fill="none" stroke="rgba(255,252,242,0.7)" stroke-width="3"/>
+    </g>
+    <!-- lotus-petal collar at the dome base -->
+    <path d="M150,290 ${[...Array(13)].map((_, i) => `Q${162 + i * 20},278 ${170 + i * 20},290`).join(" ")} L410,296 L150,296 Z" fill="#a5432a"/>
+    <!-- chhajja (projecting eave) -->
+    <rect x="130" y="294" width="300" height="9" rx="2" fill="#6e4a2e"/>
+    <rect x="130" y="301" width="300" height="3" fill="#54371f"/>
+    <!-- drum with cusped arches -->
+    <path d="${band}" fill="#a5432a"/>
+    <path d="${arches}" fill="#efe3cc"/>
+    <rect x="155" y="334" width="250" height="4" fill="#7e3120"/>
+    <linearGradient id="inShade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0.5" stop-color="rgba(255,252,240,0.22)"/><stop offset="0.66" stop-color="rgba(120,95,60,0)"/><stop offset="1" stop-color="rgba(110,85,55,0.26)"/>
+    </linearGradient>
+    <path d="${dome}" fill="url(#inShade)"/>`,
+  };
+}
+
+const ROOFS = { china: chinaRoofSVG(), japan: japanRoofSVG(), kazakhstan: yurtRoofSVG(), india: indiaRoofSVG() };
 
 function roofMarkup(key) {
   const r = ROOFS[key];
@@ -214,6 +282,7 @@ const MINI = {
   kazakhstan: `<svg viewBox="0 0 44 26"><path d="M6,20 C8,8 16,3 22,3 C28,3 36,8 38,20 C30,23 14,23 6,20 Z" fill="#efe6d0" stroke="#8a7a5e" stroke-width="1"/><path d="M6,20 C14,23 30,23 38,20 L37,24 C29,26.5 15,26.5 7,24 Z" fill="#8e3b2e"/><ellipse cx="22" cy="5.5" rx="4.5" ry="1.8" fill="none" stroke="#7c3a26" stroke-width="1.4"/></svg>`,
   vietnam: `<svg viewBox="0 0 44 26"><path d="M4,14 C10,20 34,20 40,14 C38,22 30,25 22,25 C14,25 6,22 4,14 Z" fill="#4a3b2b"/><path d="M8,12 C16,17 28,17 36,12" fill="none" stroke="#4a3b2b" stroke-width="2"/></svg>`,
   russia: `<svg viewBox="0 0 44 26"><path d="M22,2 C30,8 34,14 34,20 L10,20 C10,14 14,8 22,2 Z" fill="#b3442b"/><rect x="8" y="20" width="28" height="4" fill="#6e4a2e"/></svg>`,
+  india: `<svg viewBox="0 0 44 26"><rect x="21" y="0" width="2" height="5" fill="#c9971f"/><path d="M22,4 C29,7 34,12 34,17 C34,20 31,21.5 28.5,22 L15.5,22 C13,21.5 10,20 10,17 C10,12 15,7 22,4 Z" fill="#efe6d0" stroke="#8a7a5e" stroke-width="1"/><rect x="12" y="22" width="20" height="3.5" fill="#a5432a"/></svg>`,
 };
 
 // ---------------------------------------------------------- curtain physics
@@ -228,6 +297,17 @@ let agitation = 0; // slow envelope: how disturbed the curtain is overall
 let stir = 0;      // fast envelope: how hard this exact frame is stirring
 window.addEventListener("mousemove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
 window.addEventListener("mouseleave", () => { mouse.x = -9999; mouse.y = -9999; });
+
+// split text into grapheme clusters so scripts with combining marks
+// (Devanagari matras, conjuncts) render as whole units, not broken pieces
+function toGlyphs(str) {
+  if (typeof Intl !== "undefined" && Intl.Segmenter) {
+    return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(str)]
+      .map((s) => s.segment);
+  }
+  return Array.from(str);
+}
+for (const k in DESTS) DESTS[k].glyphs = toGlyphs(DESTS[k].chars);
 
 function mulberry(seed) {
   return function () {
@@ -274,9 +354,10 @@ class StrandSystem {
         pts.push({ x, y: y0 + i * this.segLen, px: x, py: y0 + i * this.segLen });
       }
       const chars = [], alphas = [];
+      const glyphs = this.dest.glyphs;
       for (let i = 0; i < count; i++) {
-        const idx = (i * n + s) % this.dest.chars.length;
-        chars.push(this.dest.chars[idx]);
+        const idx = (i * n + s) % glyphs.length;
+        chars.push(glyphs[idx]);
         alphas.push(0.48 + rnd() * 0.4);
       }
       this.strands.push({ xN, pts, chars, alphas, phase: xN * 2.6 });
@@ -540,8 +621,8 @@ let destSystems = [];
 const destShadows = [];
 
 function layoutDestRow() {
-  const w = VW * 0.21;
-  const xs = [VW * 0.085, VW * 0.395, VW * 0.705];
+  const w = VW * 0.175;
+  const xs = [VW * 0.05, VW * 0.285, VW * 0.52, VW * 0.755];
   destItems.forEach((item, i) => {
     const key = item.dataset.dest;
     const r = ROOFS[key];
