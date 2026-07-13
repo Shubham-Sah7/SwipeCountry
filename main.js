@@ -210,7 +210,9 @@ function yurtRoofSVG() {
 function indiaRoofSVG() {
   // Taj Mahal roofline: central marble dome with recurved neck on a
   // chevron-inlaid drum, flanked by two chhatris on a long cornice
-  const dome = "M360,64 C404,72 470,116 470,192 C470,244 440,260 422,270 L298,270 C280,260 250,244 250,192 C250,116 316,72 360,64 Z";
+  // a near-perfect sphere: circular arc widest at mid-height, overhanging
+  // the drum, tucking in to a narrow neck exactly like the real dome
+  const dome = "M273.5,268 A124,120 0 1 1 446.5,268 Z";
   // chevron inlay across the drum, like the herringbone band in the photo
   let chevron = "";
   for (let x = 262; x < 452; x += 16) chevron += `M${x},296 L${x + 8},280 L${x + 16},296 `;
@@ -249,18 +251,21 @@ function indiaRoofSVG() {
     <path d="${chevron}" fill="none" stroke="#8f7a58" stroke-width="3"/>
     <path d="${chevron}" fill="none" stroke="#efe5cf" stroke-width="1.2"/>
     <path d="M262,308 L458,308 M262,326 L458,326" stroke="#cbbc9c" stroke-width="1.5"/>
-    <!-- main dome, smooth like the marble -->
-    <path d="${dome}" fill="url(#inMarble)"/>
+    <!-- main dome: a smooth marble sphere -->
+    <path d="${dome}" fill="url(#inMarble)" stroke="#c9ba9a" stroke-width="2"/>
     <g clip-path="url(#inClip)">
-      <path d="M360,64 C316,72 250,116 250,192 C250,244 280,260 298,270" fill="none" stroke="rgba(255,253,246,0.9)" stroke-width="4"/>
-      <path d="M360,64 C404,72 470,116 470,192 C470,244 440,260 422,270" fill="none" stroke="rgba(140,120,90,0.4)" stroke-width="4"/>
+      <radialGradient id="inSphere" cx="0.38" cy="0.28" r="0.8">
+        <stop offset="0" stop-color="rgba(255,253,246,0.55)"/><stop offset="0.55" stop-color="rgba(255,253,246,0)"/>
+      </radialGradient>
+      <rect x="236" y="58" width="248" height="214" fill="url(#inSphere)"/>
       <linearGradient id="inShade" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0.42" stop-color="rgba(255,253,245,0.3)"/><stop offset="0.62" stop-color="rgba(140,115,80,0)"/><stop offset="1" stop-color="rgba(125,102,72,0.3)"/>
+        <stop offset="0.5" stop-color="rgba(140,115,80,0)"/><stop offset="1" stop-color="rgba(125,102,72,0.28)"/>
       </linearGradient>
-      <rect x="250" y="60" width="220" height="212" fill="url(#inShade)"/>
+      <rect x="236" y="58" width="248" height="214" fill="url(#inShade)"/>
+      <path d="M273.5,268 A124,120 0 1 1 446.5,268" fill="none" stroke="rgba(140,120,90,0.25)" stroke-width="6"/>
     </g>
     <!-- inverted-lotus crown and tall finial with crescent -->
-    <path d="M338,66 Q360,50 382,66 Q360,76 338,66 Z" fill="#d9cbab"/>
+    <path d="M336,68 Q360,50 384,68 Q360,78 336,68 Z" fill="#d9cbab"/>
     <rect x="357.5" y="14" width="5" height="48" rx="2.5" fill="#b8891c"/>
     <circle cx="360" cy="52" r="7" fill="#c9971f"/>
     <circle cx="360" cy="38" r="5.5" fill="#c9971f"/>
