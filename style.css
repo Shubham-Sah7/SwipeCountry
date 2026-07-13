@@ -1,0 +1,228 @@
+:root {
+  --paper: #e7dec6;
+  --ink: #3d332a;
+  --ink-soft: #6d5f4c;
+  --ink-faint: #94856d;
+  --accent-dark: #38291f;
+  --cream: #efe8d6;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--paper);
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- paper texture ---------- */
+.grain {
+  position: fixed; inset: -50px;
+  pointer-events: none;
+  z-index: 40;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(118, 98, 68, 0.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(118, 98, 68, 0.04) 0 1px, transparent 1px 3px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.45 0 0 0 0 0.40 0 0 0 0 0.32 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 3px 3px, 3px 3px, 300px 300px;
+}
+.vignette {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 41;
+  background:
+    radial-gradient(120% 120% at 50% 40%, transparent 52%, rgba(88, 72, 50, 0.2) 100%);
+}
+
+/* ---------- layers ---------- */
+.shadow-layer { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+#curtain      { position: fixed; inset: 0; z-index: 2; display: block; }
+.roof-layer   { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+
+.roof-wrap {
+  position: absolute;
+  will-change: transform;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.roof-wrap svg { display: block; width: 100%; height: auto; }
+
+.roof-shadow {
+  position: absolute;
+  will-change: transform;
+  filter: blur(22px);
+  opacity: 0.85;
+}
+.roof-shadow svg { display: block; width: 100%; height: auto; }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  padding: 22px 40px;
+  gap: 48px;
+}
+.brand {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.menu { display: flex; gap: 26px; }
+.menu-link {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: var(--ink-faint);
+  transition: color 0.3s;
+}
+.menu-link.active, .menu-link:hover { color: var(--ink); }
+.configure {
+  margin-left: auto;
+  background: var(--accent-dark);
+  color: var(--cream);
+  border: none;
+  font-family: "Instrument Serif", serif;
+  font-size: 15px;
+  padding: 8px 20px 9px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.configure:hover { background: #241812; }
+
+/* ---------- hero copy ---------- */
+.hero-ui { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+.hero-ui > * { pointer-events: auto; }
+
+.copy {
+  position: absolute;
+  left: 4.5vw;
+  top: 45vh;
+  max-width: 21.5vw;
+  pointer-events: none;
+}
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+  margin-bottom: 2.6vh;
+  white-space: pre-line;
+}
+.kicker .cjk { font-family: "Songti SC", "Hiragino Mincho ProN", serif; font-size: 12.5px; }
+.headline {
+  font-family: "Instrument Serif", serif;
+  font-weight: 400;
+  font-size: clamp(38px, 3.4vw, 62px);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: #3a3026;
+}
+.headline .word {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(14px);
+  transition: opacity 0.7s ease, filter 0.7s ease, transform 0.7s ease;
+}
+.headline .word.in {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0);
+}
+.kicker, .blurb { transition: opacity 0.5s ease; }
+.fade-out .kicker, .fade-out .blurb { opacity: 0; }
+
+.blurb {
+  position: absolute;
+  right: 4.5vw;
+  bottom: 9vh;
+  width: 232px;
+  font-size: 11px;
+  line-height: 1.85;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+
+/* ---------- side cards ---------- */
+.side-card {
+  position: absolute;
+  top: 27vh;
+  width: 74px;
+  padding: 9px 6px 7px;
+  background: transparent;
+  border: 1px solid rgba(109, 95, 76, 0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-family: "Instrument Serif", serif;
+  color: var(--ink-soft);
+  transition: border-color 0.3s, transform 0.3s, opacity 0.5s;
+}
+.side-card:hover { border-color: var(--ink); color: var(--ink); transform: scale(1.06); }
+.side-card--left  { left: 3vw; }
+.side-card--right { right: 3vw; }
+.side-card-icon { width: 44px; height: 26px; }
+.side-card-icon svg { display: block; width: 100%; height: 100%; }
+.side-card-name { font-size: 12px; line-height: 1; }
+.fade-out .side-card { opacity: 0; pointer-events: none; }
+
+/* ---------- destinations view ---------- */
+.dest-row { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+.dest-item { position: absolute; opacity: 0; transition: opacity 0.8s ease; }
+.dest-item svg { display: block; width: 100%; height: auto; }
+.dest-item.in { opacity: 1; }
+
+/* ---------- sound toggle ---------- */
+.sound-toggle {
+  position: fixed;
+  left: 4.5vw;
+  bottom: 4.8vh;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  transition: color 0.3s;
+}
+.sound-toggle:hover { color: var(--ink); }
+.sound-toggle.on { color: var(--ink-soft); }
+.sound-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5px;
+  height: 11px;
+}
+.sound-bars i {
+  width: 2px;
+  height: 3px;
+  background: currentColor;
+  transition: height 0.3s;
+}
+.sound-toggle.on .sound-bars i { animation: bar 1.1s ease-in-out infinite; }
+.sound-toggle.on .sound-bars i:nth-child(1) { animation-delay: 0s; }
+.sound-toggle.on .sound-bars i:nth-child(2) { animation-delay: 0.25s; }
+.sound-toggle.on .sound-bars i:nth-child(3) { animation-delay: 0.5s; }
+.sound-toggle.on .sound-bars i:nth-child(4) { animation-delay: 0.12s; }
+@keyframes bar {
+  0%, 100% { height: 3px; }
+  50% { height: 11px; }
+}
+
+.hidden { display: none !important; }

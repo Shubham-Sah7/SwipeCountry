@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Budarina — roofs of the world</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- paper grain -->
+  <div class="grain"></div>
+  <div class="vignette"></div>
+
+  <!-- cast shadows (behind curtain) -->
+  <div class="shadow-layer" id="shadowLayer"></div>
+
+  <!-- character curtain -->
+  <canvas id="curtain"></canvas>
+
+  <!-- roofs -->
+  <div class="roof-layer" id="roofLayer">
+    <div class="roof-wrap" id="roofA"></div>
+    <div class="roof-wrap" id="roofB"></div>
+  </div>
+
+  <!-- destinations row view -->
+  <div class="dest-row" id="destRow">
+    <div class="dest-item" data-dest="china"></div>
+    <div class="dest-item" data-dest="japan"></div>
+    <div class="dest-item" data-dest="kazakhstan"></div>
+  </div>
+
+  <!-- chrome -->
+  <header class="topbar">
+    <div class="brand">Budarina</div>
+    <nav class="menu">
+      <a href="#" class="menu-link active" data-view="home">Home</a>
+      <a href="#" class="menu-link" data-view="destinations">Destinations</a>
+      <a href="#" class="menu-link" data-view="community">Community</a>
+    </nav>
+    <button class="configure">Configure</button>
+  </header>
+
+  <div class="hero-ui" id="heroUI">
+    <button class="side-card side-card--left" id="prevCard">
+      <span class="side-card-icon"></span>
+      <span class="side-card-name"></span>
+    </button>
+    <button class="side-card side-card--right" id="nextCard">
+      <span class="side-card-icon"></span>
+      <span class="side-card-name"></span>
+    </button>
+
+    <div class="copy">
+      <p class="kicker" id="kicker"></p>
+      <h1 class="headline" id="headline"></h1>
+    </div>
+
+    <p class="blurb" id="blurb"></p>
+  </div>
+
+  <button class="sound-toggle" id="soundToggle" aria-label="Toggle sound">
+    <span class="sound-bars"><i></i><i></i><i></i><i></i></span>
+    <span class="sound-label">sound</span>
+  </button>
+
+  <script src="main.js"></script>
+</body>
+</html>
