@@ -720,7 +720,13 @@ async function initAudio() {
   sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
   sound.master = sound.ctx.createGain();
   sound.master.gain.value = 0;
-  sound.master.connect(sound.ctx.destination);
+  // round everything through a gentle low-pass so nothing bites
+  const lp = sound.ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = 3000;
+  lp.Q.value = 0.4;
+  sound.master.connect(lp);
+  lp.connect(sound.ctx.destination);
 
   // ambience bed (swells softly with overall disturbance)
   sound.gain = sound.ctx.createGain();
@@ -735,8 +741,8 @@ async function initAudio() {
   sound.noiseBuffer = nb;
   sound.filter = sound.ctx.createBiquadFilter();
   sound.filter.type = "bandpass";
-  sound.filter.frequency.value = 2000;
-  sound.filter.Q.value = 0.7;
+  sound.filter.frequency.value = 900;
+  sound.filter.Q.value = 0.5;
   sound.rustle = sound.ctx.createGain();
   sound.rustle.gain.value = 0;
   sound.filter.connect(sound.rustle);
@@ -746,38 +752,38 @@ async function initAudio() {
   sound.buffer = await sound.ctx.decodeAudioData(await res.arrayBuffer());
 }
 
-// one dry papery tick as the cursor flicks past a thread — like a real
-// paper strip brushing your finger. Brightness follows the thread's position.
+// one soft chime as the cursor brushes a thread — warm, bell-like, gentle.
+// Pitches sit on a major pentatonic scale rising left to right, so any
+// sweep across the curtain plays as music, never as noise.
+const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
 function threadTick(xN) {
   const ctx2 = sound.ctx;
   const t = ctx2.currentTime;
   const speed = Math.min(24, Math.abs(mouse.vx) + Math.abs(mouse.vy));
-  const vel = 0.03 + speed * 0.0045; // 0.03 .. 0.14
+  const vel = 0.012 + speed * 0.0022; // whisper .. soft
+  const freq = 349.23 * Math.pow(2, PENTA[Math.round(xN * (PENTA.length - 1))] / 12);
 
-  // crisp noise flick
-  const src = ctx2.createBufferSource();
-  src.buffer = sound.noiseBuffer;
-  const bp = ctx2.createBiquadFilter();
-  bp.type = "bandpass";
-  bp.frequency.value = 2300 + xN * 1900; // left threads duller, right crisper
-  bp.Q.value = 1.1;
-  const g = ctx2.createGain();
-  g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(vel, t + 0.003);
-  g.gain.exponentialRampToValueAtTime(0.0005, t + 0.06 + speed * 0.0015);
-  src.connect(bp); bp.connect(g); g.connect(sound.master);
-  src.start(t, (xN * 1.7) % 1.5, 0.14);
-
-  // faint soft body under the flick, so it doesn't sound thin
+  // pure fundamental with a slow attack (no click) and a long sweet tail
   const o = ctx2.createOscillator();
   o.type = "sine";
-  o.frequency.value = 150 + xN * 90;
+  o.frequency.value = freq;
+  const g = ctx2.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vel, t + 0.014);
+  g.gain.exponentialRampToValueAtTime(0.0004, t + 0.7);
+  o.connect(g); g.connect(sound.master);
+  o.start(t); o.stop(t + 0.75);
+
+  // faint octave shimmer, fading faster than the fundamental
+  const o2 = ctx2.createOscillator();
+  o2.type = "sine";
+  o2.frequency.value = freq * 2;
   const g2 = ctx2.createGain();
   g2.gain.setValueAtTime(0, t);
-  g2.gain.linearRampToValueAtTime(vel * 0.35, t + 0.004);
-  g2.gain.exponentialRampToValueAtTime(0.0004, t + 0.09);
-  o.connect(g2); g2.connect(sound.master);
-  o.start(t); o.stop(t + 0.12);
+  g2.gain.linearRampToValueAtTime(vel * 0.16, t + 0.012);
+  g2.gain.exponentialRampToValueAtTime(0.0003, t + 0.32);
+  o2.connect(g2); g2.connect(sound.master);
+  o2.start(t); o2.stop(t + 0.36);
 }
 
 // which threads did the cursor sweep across since last frame?
@@ -796,9 +802,9 @@ function strum(sys) {
     const sx = a.x0 + xN * (a.x1 - a.x0);
     if (sx >= x0 && sx <= x1) {
       const st = sys.strands[k];
-      if (!st.lastPluck || now - st.lastPluck > 110) {
+      if (!st.lastPluck || now - st.lastPluck > 150) {
         st.lastPluck = now;
-        if (played++ < 5) threadTick(xN);
+        if (played++ < 4) threadTick(xN);
       }
     }
   }
@@ -900,10 +906,10 @@ function frame() {
     const target = Math.min(1, agitation);
     sound.level += (target - sound.level) * (target > sound.level ? 0.25 : 0.045);
     sound.gain.gain.setTargetAtTime(sound.level * 0.5, t, 0.08);
-    // rustle rides the instantaneous stir, brighter when you move faster
+    // rustle is now a soft breeze: quiet, low, and slow to change
     const speed = Math.min(24, Math.abs(mouse.vx) + Math.abs(mouse.vy));
-    sound.rustle.gain.setTargetAtTime(Math.min(0.2, stir * 1.5), t, 0.055);
-    sound.filter.frequency.setTargetAtTime(1400 + speed * 90, t, 0.1);
+    sound.rustle.gain.setTargetAtTime(Math.min(0.07, stir * 0.55), t, 0.09);
+    sound.filter.frequency.setTargetAtTime(650 + speed * 30, t, 0.15);
     soundToggle.classList.toggle("audible", sound.level > 0.04 || stir > 0.01);
   }
   stir = 0;

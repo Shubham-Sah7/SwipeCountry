@@ -15,5 +15,5 @@ python3 -m http.server 4173
 
 - Click the side cards (or ← / → arrow keys) to change destination
 - **Destinations** in the nav shows all three roofs
-- Sound arms itself on your first click anywhere (browser rule); the **sound** chip bottom-left mutes/unmutes. It stays silent until you brush the threads — papery ticks as you cross each strand, a rustle that follows your speed, silence when you stop
+- Sound arms itself on your first click anywhere (browser rule); the **sound** chip bottom-left mutes/unmutes. It stays silent until you brush the threads — soft pentatonic chimes as you cross each strand, a gentle breeze that follows your speed, silence when you stop
 - Move your cursor through the hanging text
