@@ -665,31 +665,38 @@ async function initAudio() {
   sound.buffer = await sound.ctx.decodeAudioData(await res.arrayBuffer());
 }
 
-// one soft pluck as the cursor crosses a thread; pitch follows its position
-const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
-function pluckNote(xN) {
-  const t = sound.ctx.currentTime;
+// one dry papery tick as the cursor flicks past a thread — like a real
+// paper strip brushing your finger. Brightness follows the thread's position.
+function threadTick(xN) {
+  const ctx2 = sound.ctx;
+  const t = ctx2.currentTime;
   const speed = Math.min(24, Math.abs(mouse.vx) + Math.abs(mouse.vy));
-  const vel = 0.015 + speed * 0.0032;
-  const freq = 392 * Math.pow(2, PENTA[Math.round(xN * (PENTA.length - 1))] / 12);
-  const o = sound.ctx.createOscillator();
-  o.type = "sine";
-  o.frequency.value = freq;
-  const g = sound.ctx.createGain();
+  const vel = 0.03 + speed * 0.0045; // 0.03 .. 0.14
+
+  // crisp noise flick
+  const src = ctx2.createBufferSource();
+  src.buffer = sound.noiseBuffer;
+  const bp = ctx2.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 2300 + xN * 1900; // left threads duller, right crisper
+  bp.Q.value = 1.1;
+  const g = ctx2.createGain();
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(vel, t + 0.006);
-  g.gain.exponentialRampToValueAtTime(0.0006, t + 0.45);
-  o.connect(g); g.connect(sound.master);
-  o.start(t); o.stop(t + 0.5);
-  const o2 = sound.ctx.createOscillator();
-  o2.type = "sine";
-  o2.frequency.value = freq * 2.01;
-  const g2 = sound.ctx.createGain();
+  g.gain.linearRampToValueAtTime(vel, t + 0.003);
+  g.gain.exponentialRampToValueAtTime(0.0005, t + 0.06 + speed * 0.0015);
+  src.connect(bp); bp.connect(g); g.connect(sound.master);
+  src.start(t, (xN * 1.7) % 1.5, 0.14);
+
+  // faint soft body under the flick, so it doesn't sound thin
+  const o = ctx2.createOscillator();
+  o.type = "sine";
+  o.frequency.value = 150 + xN * 90;
+  const g2 = ctx2.createGain();
   g2.gain.setValueAtTime(0, t);
-  g2.gain.linearRampToValueAtTime(vel * 0.28, t + 0.005);
-  g2.gain.exponentialRampToValueAtTime(0.0005, t + 0.25);
-  o2.connect(g2); g2.connect(sound.master);
-  o2.start(t); o2.stop(t + 0.3);
+  g2.gain.linearRampToValueAtTime(vel * 0.35, t + 0.004);
+  g2.gain.exponentialRampToValueAtTime(0.0004, t + 0.09);
+  o.connect(g2); g2.connect(sound.master);
+  o.start(t); o.stop(t + 0.12);
 }
 
 // which threads did the cursor sweep across since last frame?
@@ -708,9 +715,9 @@ function strum(sys) {
     const sx = a.x0 + xN * (a.x1 - a.x0);
     if (sx >= x0 && sx <= x1) {
       const st = sys.strands[k];
-      if (!st.lastPluck || now - st.lastPluck > 160) {
+      if (!st.lastPluck || now - st.lastPluck > 110) {
         st.lastPluck = now;
-        if (played++ < 4) pluckNote(xN);
+        if (played++ < 5) threadTick(xN);
       }
     }
   }
@@ -772,6 +779,14 @@ async function toggleSound() {
   }
 }
 soundToggle.addEventListener("click", toggleSound);
+
+// arm sound on the very first click anywhere (browsers need one gesture);
+// the chip stays available as a mute toggle
+const armOnFirstClick = (e) => {
+  window.removeEventListener("pointerdown", armOnFirstClick);
+  if (!sound.on && !e.target.closest("#soundToggle")) toggleSound();
+};
+window.addEventListener("pointerdown", armOnFirstClick);
 
 // ---------------------------------------------------------- main loop
 
