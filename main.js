@@ -208,29 +208,46 @@ function yurtRoofSVG() {
 }
 
 function indiaRoofSVG() {
-  // Taj Mahal roofline: central marble dome with recurved neck on a
-  // chevron-inlaid drum, flanked by two chhatris on a long cornice
-  // a near-perfect sphere: circular arc widest at mid-height, overhanging
-  // the drum, tucking in to a narrow neck exactly like the real dome
-  const dome = "M273.5,268 A124,120 0 1 1 446.5,268 Z";
-  // chevron inlay across the drum, like the herringbone band in the photo
+  // Taj Mahal roofline, drawn from reference: spherical marble dome rising
+  // into the concave tent-like peak, bronze finial with crescent, necklace
+  // band at the neck, chevron drum, arcaded chhatris, slender guldastas
+  const dome = `M276,268
+    C 246,236 236,198 240,166
+    C 246,120 284,94 322,86
+    Q 350,80 360,56
+    Q 370,80 398,86
+    C 436,94 474,120 480,166
+    C 484,198 474,236 444,268 Z`;
+  // chevron inlay ring right where the dome meets the drum
   let chevron = "";
-  for (let x = 262; x < 452; x += 16) chevron += `M${x},296 L${x + 8},280 L${x + 16},296 `;
+  for (let x = 262; x < 452; x += 16) chevron += `M${x},292 L${x + 8},278 L${x + 16},292 `;
+  // blind arches along the lower drum
+  let drumArches = "";
+  for (let i = 0; i < 10; i++) {
+    const x = 265 + i * 19.4;
+    drumArches += `M${x},332 L${x},314 Q${x},307 ${x + 6.7},307 Q${x + 13.4},307 ${x + 13.4},314 L${x + 13.4},332 Z `;
+  }
   const chhatri = (cx) => `
-    <rect x="${cx - 3}" y="230" width="6" height="18" fill="#c8b998"/>
-    <circle cx="${cx}" cy="228" r="4" fill="#b8891c"/>
-    <path d="M${cx - 27},298 C${cx - 27},266 ${cx - 12},254 ${cx},254 C${cx + 12},254 ${cx + 27},266 ${cx + 27},298 Z" fill="url(#inMarble)" stroke="#c3b494" stroke-width="1.5"/>
-    <rect x="${cx - 36}" y="298" width="72" height="7" rx="2" fill="#e8dcc2"/>
-    <rect x="${cx - 36}" y="303" width="72" height="3" fill="#b9a988"/>
-    ${[-28, -10, 10, 28].map((o) => `<rect x="${cx + o - 2}" y="306" width="4" height="36" fill="#ddd0b2"/>`).join("")}`;
+    <rect x="${cx - 1.5}" y="232" width="3" height="16" fill="#6b5744"/>
+    <circle cx="${cx}" cy="230" r="3" fill="#6b5744"/>
+    <path d="M${cx - 8},252 Q${cx},242 ${cx + 8},252 Q${cx},258 ${cx - 8},252 Z" fill="#cbbc9c"/>
+    <path d="M${cx - 26},296 C${cx - 26},266 ${cx - 13},250 ${cx},250 C${cx + 13},250 ${cx + 26},266 ${cx + 26},296 Z" fill="url(#inMarble)" stroke="#c3b494" stroke-width="1.5"/>
+    <rect x="${cx - 28}" y="294" width="56" height="5" fill="#e0d3b4"/>
+    <rect x="${cx - 37}" y="299" width="74" height="7" rx="2" fill="#e8dcc2"/>
+    <rect x="${cx - 37}" y="304" width="74" height="3" fill="#b09f7f"/>
+    ${[-31, -15.5, 0, 15.5, 31].map((o) => `<rect x="${cx + o - 1.8}" y="307" width="3.6" height="33" fill="#d9cbab"/>`).join("")}
+    <path d="M${cx - 31},316 Q${cx - 23},308 ${cx - 15.5},316 Q${cx - 8},308 ${cx},316 Q${cx + 8},308 ${cx + 15.5},316 Q${cx + 23},308 ${cx + 31},316" fill="none" stroke="#b9a988" stroke-width="2"/>
+    <rect x="${cx - 39}" y="338" width="78" height="4" fill="#cbbc9c"/>`;
   const guldasta = (cx) => `
-    <rect x="${cx - 2}" y="300" width="4" height="42" fill="#d5c8a8"/>
-    <circle cx="${cx}" cy="296" r="4.5" fill="#c8b998"/>
-    <rect x="${cx - 3.5}" y="288" width="7" height="5" rx="2" fill="#c8b998"/>`;
+    <rect x="${cx - 1.8}" y="290" width="3.6" height="52" fill="#d5c8a8"/>
+    <circle cx="${cx}" cy="286" r="4" fill="#c8b998"/>
+    <circle cx="${cx}" cy="277" r="3" fill="#c8b998"/>
+    <path d="M${cx - 3},272 L${cx},262 L${cx + 3},272 Z" fill="#c8b998"/>
+    <rect x="${cx - 4.5}" y="336" width="9" height="6" rx="1.5" fill="#c8b998"/>`;
   return {
     viewBox: "0 0 720 400",
     aspect: 400 / 720,
-    silhouette: [dome, "M255,266 L465,266 L465,342 L255,342 Z", "M60,340 L660,340 L660,370 L60,370 Z", "M112,252 L188,252 L188,342 L112,342 Z", "M532,252 L608,252 L608,342 L532,342 Z"],
+    silhouette: [dome, "M255,266 L465,266 L465,342 L255,342 Z", "M60,340 L660,340 L660,370 L60,370 Z", "M112,250 L188,250 L188,342 L112,342 Z", "M532,250 L608,250 L608,342 L532,342 Z"],
     art: `
     <defs>
       <linearGradient id="inMarble" x1="0" y1="0" x2="0" y2="1">
@@ -243,34 +260,42 @@ function indiaRoofSVG() {
     <rect x="60" y="340" width="600" height="4" fill="#c3b494"/>
     <rect x="60" y="360" width="600" height="4" fill="#b9a988"/>
     ${guldasta(82)}${guldasta(638)}
-    <!-- flanking chhatris -->
+    <!-- flanking chhatris with open arched galleries -->
     ${chhatri(150)}${chhatri(570)}
-    <!-- drum -->
+    <!-- drum: chevron ring up top, blind arches below -->
     <rect x="255" y="266" width="210" height="76" fill="url(#inMarble)"/>
     <rect x="255" y="266" width="210" height="76" fill="none" stroke="#c3b494" stroke-width="1.5"/>
     <path d="${chevron}" fill="none" stroke="#8f7a58" stroke-width="3"/>
     <path d="${chevron}" fill="none" stroke="#efe5cf" stroke-width="1.2"/>
-    <path d="M262,308 L458,308 M262,326 L458,326" stroke="#cbbc9c" stroke-width="1.5"/>
-    <!-- main dome: a smooth marble sphere -->
+    <path d="M258,298 L462,298" stroke="#b9a988" stroke-width="2"/>
+    <path d="${drumArches}" fill="#e5d8ba"/>
+    <path d="M258,336 L462,336" stroke="#cbbc9c" stroke-width="2"/>
+    <!-- main dome: marble sphere rising into the tent-like peak -->
     <path d="${dome}" fill="url(#inMarble)" stroke="#c9ba9a" stroke-width="2"/>
     <g clip-path="url(#inClip)">
-      <radialGradient id="inSphere" cx="0.38" cy="0.28" r="0.8">
+      <radialGradient id="inSphere" cx="0.38" cy="0.32" r="0.8">
         <stop offset="0" stop-color="rgba(255,253,246,0.55)"/><stop offset="0.55" stop-color="rgba(255,253,246,0)"/>
       </radialGradient>
-      <rect x="236" y="58" width="248" height="214" fill="url(#inSphere)"/>
+      <rect x="236" y="54" width="248" height="218" fill="url(#inSphere)"/>
       <linearGradient id="inShade" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0.5" stop-color="rgba(140,115,80,0)"/><stop offset="1" stop-color="rgba(125,102,72,0.28)"/>
       </linearGradient>
-      <rect x="236" y="58" width="248" height="214" fill="url(#inShade)"/>
-      <path d="M273.5,268 A124,120 0 1 1 446.5,268" fill="none" stroke="rgba(140,120,90,0.25)" stroke-width="6"/>
+      <rect x="236" y="54" width="248" height="218" fill="url(#inShade)"/>
+      <path d="${dome}" fill="none" stroke="rgba(140,120,90,0.25)" stroke-width="5"/>
+      <!-- faint radiating seams on the peak, like the real cap -->
+      <path d="M360,58 L344,92 M360,58 L360,94 M360,58 L376,92" stroke="rgba(140,120,90,0.3)" stroke-width="1.5"/>
     </g>
-    <!-- inverted-lotus crown and tall finial with crescent -->
-    <path d="M336,68 Q360,50 384,68 Q360,78 336,68 Z" fill="#d9cbab"/>
-    <rect x="357.5" y="14" width="5" height="48" rx="2.5" fill="#b8891c"/>
-    <circle cx="360" cy="52" r="7" fill="#c9971f"/>
-    <circle cx="360" cy="38" r="5.5" fill="#c9971f"/>
-    <circle cx="360" cy="26" r="4" fill="#c9971f"/>
-    <path d="M352,14 A9,9 0 1 0 368,14 A11,7 0 1 1 352,14 Z" fill="#c9971f"/>`,
+    <!-- necklace band where the dome meets the drum -->
+    <path d="M276,266 L444,266" stroke="#b9a988" stroke-width="4"/>
+    <path d="M278,266 L442,266" stroke="#8f7a58" stroke-width="2" stroke-dasharray="2 5"/>
+    <!-- inverted-lotus crown and dark bronze finial with crescent -->
+    <path d="M342,62 Q360,48 378,62 Q360,72 342,62 Z" fill="#cbbc9c"/>
+    <path d="M348,58 Q360,50 372,58" fill="none" stroke="#a3937a" stroke-width="1.5"/>
+    <rect x="358.3" y="10" width="3.4" height="48" rx="1.7" fill="#6b5744"/>
+    <ellipse cx="360" cy="46" rx="6.5" ry="7.5" fill="#7a6248"/>
+    <circle cx="360" cy="32" r="4.5" fill="#7a6248"/>
+    <circle cx="360" cy="22" r="3.2" fill="#7a6248"/>
+    <path d="M353,11 A8.5,8.5 0 1 0 367,11 A10,6.5 0 1 1 353,11 Z" fill="#7a6248"/>`,
   };
 }
 
