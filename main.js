@@ -10,9 +10,9 @@ const DESTS = {
   china: {
     name: "China",
     kicker: "缘分 (Yuánfèn) A destined meeting",
-    headline: "China —— golden courtyards, silk-road myths, roofs that refuse gravity",
+    headline: "China — golden courtyards, silk-road myths, roofs that refuse gravity",
     blurb: "Wander forbidden gardens, painted eaves, and stories older than the maps that tried to hold them.",
-    leftLabel: "India", leftIcon: "india",
+    leftLabel: "Kazakhstan", leftIcon: "kazakhstan",
     rightLabel: "Japan", rightIcon: "japan",
     chars: "千里之行始于足下上善若水水善利万物而不争天下莫柔弱于水而攻坚强者莫之能胜知人者智自知者明胜人者有力自胜者强知足者富强行者有志不失其所者久大方无隅大器晚成大音希声大象无形道隐无名夫唯道善贷且成人法地地法天天法道道法自然江山如画一时多少豪杰月落乌啼霜满天江枫渔火对愁眠",
     charFont: '"Songti SC","STSong","Noto Serif SC",serif',
@@ -23,10 +23,10 @@ const DESTS = {
   japan: {
     name: "Japan",
     kicker: "一期一会 (Ichigo ichie) One time, one\nmeeting",
-    headline: "Japan —— red eaves in the mist, stone paths, and patience as architecture",
+    headline: "Japan — red eaves in the mist, stone paths, and patience as architecture",
     blurb: "Pass under vermilion gates, cedar shade, and rooms where silence is part of the design.",
     leftLabel: "China", leftIcon: "china",
-    rightLabel: "Kazakhstan", rightIcon: "kazakhstan",
+    rightLabel: "India", rightIcon: "india",
     chars: "一期一会花鳥風月侘び寂び幽玄もののあはれ古池や蛙飛び込む水の音静けさや岩にしみ入る蝉の声月日は百代の過客にして行きかふ年もまた旅人なり夏草や兵どもが夢の跡雪とけて村いっぱいの子どもかな柿くへば鐘が鳴るなり法隆寺旅に病んで夢は枯野をかけ廻る名月や池をめぐりて夜もすがら",
     charFont: '"Hiragino Mincho ProN","Songti SC","Noto Serif JP",serif',
     charSize: 13,
@@ -36,10 +36,10 @@ const DESTS = {
   kazakhstan: {
     name: "Kazakhstan",
     kicker: "Жол (Jol) The open road",
-    headline: "Kazakhstan —— steppe wind, shanyrak light, and a home that moves with you",
+    headline: "Kazakhstan — steppe wind, shanyrak light, and a home that moves with you",
     blurb: "Cross grass without edge, warm felt interiors, and patterns that outrun every border.",
-    leftLabel: "Japan", leftIcon: "japan",
-    rightLabel: "India", rightIcon: "india",
+    leftLabel: "India", leftIcon: "india",
+    rightLabel: "China", rightIcon: "china",
     chars: "жол дала жүрек көңіл шаңырақ керегең кең болсын атамекен туған жер көк аспан жібек жолы қонақ дәстүр өнер домбыра күй аңыз батыр көш керуен сахара бостандық еркіндік атамұра қымыз бесік жырау толғау айтыс сарын құт береке ырыс ",
     charFont: '"IBM Plex Mono",monospace',
     charSize: 11,
@@ -49,10 +49,10 @@ const DESTS = {
   india: {
     name: "India",
     kicker: "अतिथि देवो भव (Atithi Devo Bhava) The guest\nis god",
-    headline: "India —— carved domes, monsoon songs, and colour in every courtyard",
+    headline: "India — carved domes, monsoon songs, and colour in every courtyard",
     blurb: "Drift through marble courts, spice-bright bazaars, and temples that hum with a thousand years of prayer.",
-    leftLabel: "Kazakhstan", leftIcon: "kazakhstan",
-    rightLabel: "China", rightIcon: "china",
+    leftLabel: "Japan", leftIcon: "japan",
+    rightLabel: "Kazakhstan", rightIcon: "kazakhstan",
     chars: "अतिथि देवो भव वसुधैव कुटुम्बकम् सत्यमेव जयते नदी पर्वत मंदिर घाट रंग उत्सव दीप संगीत कथा यात्रा मसाला बाज़ार महल किला चाँदनी कमल मोर वर्षा गंगा हिमालय रेशम हवेली झरोखा आँगन दीया मेला ",
     charFont: '"Devanagari MT","ITF Devanagari","Noto Serif Devanagari",serif',
     charSize: 12.5,
@@ -61,7 +61,7 @@ const DESTS = {
   },
 };
 
-const ORDER = ["china", "japan", "kazakhstan", "india"];
+const ORDER = ["china", "japan", "india", "kazakhstan"];
 
 // ---------------------------------------------------------- roof art
 
@@ -665,8 +665,9 @@ function layoutDestRow() {
     const r = ROOFS[key];
     item.style.width = w + "px";
     item.style.left = xs[i] + "px";
-    item.style.top = VH * 0.16 + "px";
-    item.innerHTML = roofMarkup(key);
+    item.style.top = "0px";
+    item.style.height = "100vh";
+    item.innerHTML = roofMarkup(key) + `<div class="dest-name">${DESTS[key].name}</div>`;
     if (!destShadows[i]) {
       const s = document.createElement("div");
       s.className = "roof-shadow";
@@ -688,7 +689,8 @@ function buildDestSystems() {
     const key = item.dataset.dest;
     const d = DESTS[key];
     const sys = new StrandSystem(d, () => {
-      const b = item.getBoundingClientRect();
+      const svg = item.querySelector("svg");
+      const b = svg.getBoundingClientRect();
       return {
         x0: b.left + b.width * d.anchorInset,
         x1: b.right - b.width * d.anchorInset,
